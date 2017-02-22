@@ -1,0 +1,199 @@
+package lexer;
+
+
+/**
+ *  The Lexer class is responsible for scanning the source file
+ *  which is a stream of characters and returning a stream of 
+ *  tokens; each token object will contain the string (or access
+ *  to the string) that describes the token along with an
+ *  indication of its location in the source program to be used
+ *  for error reporting; we are tracking line numbers; white spaces
+ *  are space, tab, newlines
+*/
+public class Lexer {
+    private boolean atEOF = false;
+    private char ch;     // next character to process
+    private SourceReader source;
+    
+    // positions in line of current token
+    private int startPosition, endPosition, lineNum; 
+
+    public Lexer(String sourceFile) throws Exception {
+        new TokenType();  // init token table
+        source = new SourceReader(sourceFile);
+        ch = source.read();
+    }
+
+    /**
+     * Lexar main method that takes a file and tokenizes it into legal tokens.
+     * Stops processing tokens if an illegal character/token or exception is thrown.
+     * Prints the scanned lines of the source file after tokens are processed.
+     * @param args file containing a stream of characters to be processed
+     */
+    public static void main(String args[]) {
+        Token tok;
+        try {
+            Lexer lex = new Lexer(args[0]);
+            while (true) {
+                tok = lex.nextToken();
+                
+                String t = "";
+                if ((tok.getKind() == Tokens.Identifier) || (tok.getKind() == Tokens.INTeger)) {
+                	t += tok.toString();
+                }
+                else {
+                	t += TokenType.tokens.get(tok.getKind());
+                }
+                
+                String left = "left: " + tok.getLeftPosition();
+                String right = "right: " + tok.getRightPosition();
+                String line = "line: " + tok.getLineNumber(); //gets line number from the scanned token
+                
+                System.out.format("%-10s%-12s%-12s%-12s%n", t, left, right, line);
+            }
+        } catch (Exception e) {}
+    }
+ 
+/**
+ *  newIdTokens are either ids or reserved words; new id's will be inserted
+ *  in the symbol table with an indication that they are id's
+ *  @param id is the String just scanned - it's either an id or reserved word
+ *  @param startPosition is the column in the source file where the token begins
+ *  @param endPosition is the column in the source file where the token ends
+ *  @param lineNum
+ *  @return the Token; either an id or one for the reserved words
+*/
+    public Token newIdToken(String id,int startPosition,int endPosition, int lineNum) {
+        return new Token(startPosition,endPosition,lineNum,Symbol.symbol(id,Tokens.Identifier));
+    }
+
+/**
+ *  number tokens are inserted in the symbol table; we don't convert the 
+ *  numeric strings to numbers until we load the bytecodes for interpreting;
+ *  this ensures that any machine numeric dependencies are deferred
+ *  until we actually run the program; i.e. the numeric constraints of the
+ *  hardware used to compile the source program are not used
+ *  @param number is the int String just scanned
+ *  @param startPosition is the column in the source file where the int begins
+ *  @param endPosition is the column in the source file where the int ends
+ *  @param lineNum
+ *  @return the int Token
+*/
+    public Token newNumberToken(String number,int startPosition,int endPosition, int lineNum) {
+        return new Token(startPosition,endPosition,lineNum,
+            Symbol.symbol(number,Tokens.INTeger));
+    }
+
+/**
+ *  build the token for operators (+ -) or separators (parens, braces)
+ *  filter out comments which begin with two slashes
+ *  @param s is the String representing the token
+ *  @param startPosition is the column in the source file where the token begins
+ *  @param endPosition is the column in the source file where the token ends
+ *  @param lineNum
+ *  @return the Token just found
+*/
+    public Token makeToken(String s,int startPosition,int endPosition,int lineNum) {
+        if (s.equals("//")) {  // filter comment
+            try {
+               int oldLine = source.getLineno();
+               do {
+                   ch = source.read();
+               } while (oldLine == source.getLineno());
+            } catch (Exception e) {
+                    atEOF = true;
+            }
+            return nextToken();
+        }
+        Symbol sym = Symbol.symbol(s,Tokens.BogusToken); // be sure it's a valid token
+        if (sym == null) {
+             System.out.println("********* ILLEGAL CHARACTER: " + s);
+             atEOF = true;
+             return nextToken();
+        }
+        return new Token(startPosition,endPosition,lineNum,sym);
+        }
+
+/**
+ *  @return the next Token found in the source file
+*/
+    public Token nextToken() { // ch is always the next char to process
+        if (atEOF) {
+            if (source != null) {
+            	System.out.println();
+            	source.printFile(); //print source file up to and including error line
+                source.close();
+                source = null;
+            }
+            return null;
+        }
+        try {
+            while (Character.isWhitespace(ch)) {  // scan past whitespace
+                ch = source.read();
+            }
+        } catch (Exception e) {
+            atEOF = true;
+            return nextToken();
+        }
+        
+        startPosition = source.getPosition();
+        endPosition = startPosition - 1;
+        lineNum = source.getLineno();
+
+        if (Character.isJavaIdentifierStart(ch)) {
+            // return tokens for ids and reserved words
+            String id = "";
+            try {
+                do {
+                    endPosition++;
+                    id += ch;
+                    ch = source.read();
+                } while (Character.isJavaIdentifierPart(ch));
+            } catch (Exception e) {
+                atEOF = true;
+            }
+            return newIdToken(id,startPosition,endPosition,lineNum);
+        }
+        if (Character.isDigit(ch)) {
+            // return number tokens
+            String number = "";
+            try {
+                do {
+                    endPosition++;
+                    number += ch;
+                    ch = source.read();
+                } while (Character.isDigit(ch));
+            } catch (Exception e) {
+                atEOF = true;
+            }
+            return newNumberToken(number,startPosition,endPosition,lineNum);
+        }
+        
+        // At this point the only tokens to check for are one or two
+        // characters; we must also check for comments that begin with
+        // 2 slashes
+        String charOld = "" + ch;
+        String op = charOld;
+        Symbol sym;
+        try {
+            endPosition++;
+            ch = source.read();
+            op += ch;
+            // check if valid 2 char operator; if it's not in the symbol
+            // table then don't insert it since we really have a one char
+            // token
+            sym = Symbol.symbol(op, Tokens.BogusToken); 
+            if (sym == null) {  // it must be a one char token
+                return makeToken(charOld,startPosition,endPosition,lineNum);
+            }
+            endPosition++;
+            ch = source.read();
+            return makeToken(op,startPosition,endPosition,lineNum);
+        } catch (Exception e) {}
+        atEOF = true;
+        if (startPosition == endPosition) {
+            op = charOld;
+        }
+        return makeToken(op,startPosition,endPosition,lineNum);
+    }
+}
