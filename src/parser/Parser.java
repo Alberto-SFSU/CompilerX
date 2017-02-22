@@ -180,10 +180,13 @@ public class Parser {
     /**
      * <
      * pre>
-     * type -> 'int' type -> 'bool'
+     * type -> 'int' 
+     * type -> 'bool'
+     * type -> 'float'
+     * type -> 'void'
      * </pre>
      *
-     * @return either the intType or boolType tree
+     * @return the corresponding Type Tree
      * @exception SyntaxError - thrown for any syntax error
      */
     public AST rType() throws SyntaxError {
@@ -191,9 +194,18 @@ public class Parser {
         if (isNextTok(Tokens.Int)) {
             t = new IntTypeTree();
             scan();
-        } else {
-            expect(Tokens.BOOLean);
+        } 
+        else if(isNextTok(Tokens.BOOLean)){
             t = new BoolTypeTree();
+            scan();
+        } 
+        else if(isNextTok(Tokens.Float)) {
+        	t = new FloatTypeTree();
+        	scan();
+        } 
+        else {
+        	expect(Tokens.Void);
+        	t = new VoidTypeTree();
         }
         return t;
     }

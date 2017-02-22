@@ -17,3 +17,5 @@
 /RelOpTree.class
 /ReturnTree.class
 /WhileTree.class
+/FloatTypeTree.class
+/VoidTypeTree.class
