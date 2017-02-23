@@ -140,7 +140,7 @@ public class Parser {
     }
 
     boolean startingDecl() {
-        if (isNextTok(Tokens.Int) || isNextTok(Tokens.BOOLean)) {
+        if (isNextTok(Tokens.Int) || isNextTok(Tokens.BOOLean) || isNextTok(Tokens.Float) || isNextTok(Tokens.Void)){
             return true;
         }
         return false;
@@ -182,8 +182,8 @@ public class Parser {
      * pre>
      * type -> 'int' 
      * type -> 'bool'
-     * type -> 'float'
-     * type -> 'void'
+     * type -> 'float' <----- NEW
+     * type -> 'void'  <----- NEW
      * </pre>
      *
      * @return the corresponding Type Tree
@@ -238,10 +238,14 @@ public class Parser {
     }
 
     /**
-     * <
-     * pre>
-     * S -> 'if' e 'then' block 'else' block ==> if -> 'while' e block ==> while
-     * -> 'return' e ==> return -> block -> name '=' e ==> assign
+     * <pre>
+     * S -> 'if' E 'then' BLOCK 'else' BLOCK ==> if 
+     *   -> 'while' E BLOCK ==> while
+     *   -> 'return' E ==> return 
+     *   -> 'return' ';' ==> return              <----- NEW
+     *   -> BLOCK 
+     *   -> NAME '=' E ==> assign
+     *   -> NAME '(' (E list ',')? ')' ==> call  <----- NEW
      * </pre>
      *
      * @return the tree corresponding to the statement found
@@ -267,9 +271,13 @@ public class Parser {
             return t;
         }
         if (isNextTok(Tokens.Return)) {
-            scan();
             t = new ReturnTree();
-            t.addKid(rExpr());
+            if(isNextTok(Tokens.SemiColon)) { //check for semicolon ???
+            	scan();
+            }
+            else {
+            	t.addKid(rExpr());
+            }
             return t;
         }
         if (isNextTok(Tokens.LeftBrace)) {
