@@ -1,5 +1,0 @@
-program {
-	boolean j
-	void factorial()
-		return;
-}

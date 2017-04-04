@@ -46,7 +46,7 @@ public class SourceReader {
             position = -1;
             nextLine = source.readLine();
             if (nextLine != null) {
-                System.out.println("\nREADLINE: "+nextLine);
+                //System.out.println("\nREADLINE: "+nextLine);
                 program.add(nextLine); //save into memory
             }
             isPriorEndLine = false;

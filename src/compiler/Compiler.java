@@ -22,10 +22,9 @@ public class Compiler {
     
     void compileProgram() {
         try {
-            System.out.println("---------------TOKENS-------------");
             Parser parser = new Parser(sourceFile);
             AST t = parser.execute();
-            System.out.println("---------------AST-------------");
+            System.out.println("\n---------------AST---------------");
             PrintVisitor pv = new PrintVisitor();
             t.accept(pv);
         }catch (Exception e) {

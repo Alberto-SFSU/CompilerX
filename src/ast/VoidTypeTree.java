@@ -8,7 +8,7 @@ public class VoidTypeTree extends AST{
 	}
 	
 	public Object accept(ASTVisitor v) {
-        return v.visitBoolTypeTree(this);
+        return v.visitVoidTypeTree(this);
     }
 
 }

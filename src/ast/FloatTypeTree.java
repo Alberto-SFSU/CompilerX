@@ -8,7 +8,7 @@ public class FloatTypeTree extends AST{
 	}
 	
 	public Object accept(ASTVisitor v) {
-        return v.visitBoolTypeTree(this);
+        return v.visitFloatTypeTree(this);
     }
 
 }

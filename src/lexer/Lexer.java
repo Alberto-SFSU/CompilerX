@@ -120,7 +120,6 @@ public class Lexer {
     public Token nextToken() { // ch is always the next char to process
         if (atEOF) {
             if (source != null) {
-            	System.out.println();
             	source.printFile(); //print source file up to and including error line
                 source.close();
                 source = null;

@@ -19,20 +19,26 @@ import ast.*;
  *
  *  TYPE  ->  �int�
  *        ->  �boolean�
+ *        -> 'float'        <----- NEW RULE
+ *        -> 'void'         <----- NEW RULE
  *
  *  FUNHEAD  -> '(' (D list ',')? ')'  ==> formals<br>
  *
  *  S -> �if� E �then� BLOCK �else� BLOCK  ==> if
  *    -> �while� E BLOCK               ==> while
  *    -> �return� E                    ==> return
+ *    -> 'return' ';'                      ==> return        <----- NEW RULE
  *    -> BLOCK
- *    -> NAME �=� E                    ==> assign<br>
+ *    -> NAME �=� E                    ==> assign
+ *    -> NAME '('(E list ',')?')'          ==> call          <----- NEW RULE 
+ *    <br>
  *
  *  E -> SE
  *    -> SE �==� SE   ==> =
  *    -> SE �!=� SE   ==> !=
  *    -> SE �<�  SE   ==> <
  *    -> SE �<=� SE   ==> <=
+ *    -> SE '>' SE        ==> >         <----- NEW RULE
  *
  *  SE  ->  T
  *      ->  SE �+� T  ==> +
@@ -57,7 +63,7 @@ public class Parser {
     private Token currentToken;
     private Lexer lex;
     private EnumSet<Tokens> relationalOps
-            = EnumSet.of(Tokens.Equal, Tokens.NotEqual, Tokens.Less, Tokens.LessEqual);
+            = EnumSet.of(Tokens.Equal, Tokens.NotEqual, Tokens.Less, Tokens.LessEqual, Tokens.Greater); //added '>'
     private EnumSet<Tokens> addingOps
             = EnumSet.of(Tokens.Plus, Tokens.Minus, Tokens.Or);
     private EnumSet<Tokens> multiplyingOps
@@ -271,31 +277,55 @@ public class Parser {
             return t;
         }
         if (isNextTok(Tokens.Return)) {
+        	scan();
             t = new ReturnTree();
-            if(isNextTok(Tokens.SemiColon)) { //check for semicolon ???
+            if(isNextTok(Tokens.SemiColon)) {  //S -> 'return' ';'
             	scan();
             }
             else {
-            	t.addKid(rExpr());
+            	t.addKid(rExpr()); //S -> 'return' E
             }
             return t;
         }
         if (isNextTok(Tokens.LeftBrace)) {
             return rBlock();
         }
+        
         t = rName();
-        t = (new AssignTree()).addKid(t);
-        expect(Tokens.Assign);
-        t.addKid(rExpr());
+        if(isNextTok(Tokens.Assign)) { //S -> NAME '=' E
+	        t = (new AssignTree()).addKid(t);
+	        expect(Tokens.Assign);
+	        t.addKid(rExpr());
+        }
+        else { //S ->  NAME '(' (E list ',')? ')'
+        	t = (new CallTree().addKid(t));
+        	scan();
+        	if (!isNextTok(Tokens.RightParen)) {
+                do {
+                    t.addKid(rExpr());
+                    if (isNextTok(Tokens.Comma)) {
+                        scan();
+                    } else {
+                        break;
+                    }
+                } while (true);
+            }
+            expect(Tokens.RightParen);
+        }
+        
         return t;
     }
 
     /**
-     * <
-     * pre>
-     * e -> se -> se '==' se ==> = -> se '!=' se ==> != -> se '<' se ==> < -> se
-     * '<=' se ==> <= </pre> @return the tree corresponding to the expression
-     *
+     * <pre>
+     * E -> SE 
+     *   -> SE '==' SE  ==> = 
+     *   -> SE '!=' SE  ==> != 
+     *   -> SE '<' SE   ==> < 
+     *   -> SE '<=' SE  ==> <= 
+     *   -> SE '>' SE   ==> >    <-----NEW
+     * </pre>
+     * @return the tree corresponding to the expression
      * @exception SyntaxError - thrown for any syntax error
      */
     public AST rExpr() throws SyntaxError {
@@ -312,8 +342,12 @@ public class Parser {
     /**
      * <
      * pre>
-     * se -> t -> se '+' t ==> + -> se '-' t ==> - -> se '|' t ==> or This rule
-     * indicates we should pick up as many <i>t</i>'s as possible; the
+     * se -> t 
+     *    -> se '+' t ==> + 
+     *    -> se '-' t ==> - 
+     *    -> se '|' t ==> or 
+     * 
+     * This rule indicates we should pick up as many <i>t</i>'s as possible; the
      * <i>t</i>'s will be left associative
      * </pre>
      *
@@ -333,8 +367,12 @@ public class Parser {
     /**
      * <
      * pre>
-     * t -> f -> t '*' f ==> * -> t '/' f ==> / -> t '&' f ==> and This rule
-     * indicates we should pick up as many <i>f</i>'s as possible; the
+     * t -> f 
+     *    -> t '*' f ==> * 
+     *    -> t '/' f ==> / 
+     *    -> t '&' f ==> and 
+     * 
+     * This rule indicates we should pick up as many <i>f</i>'s as possible; the
      * <i>f</i>'s will be left associative
      * </pre>
      *
@@ -354,8 +392,10 @@ public class Parser {
     /**
      * <
      * pre>
-     * f -> '(' e ')' -> name -> <int>
-     * -> name '(' (e list ',')? ')' ==> call
+     * f -> '(' e ')' 
+     *   -> name 
+     *   -> <int>
+     *   -> name '(' (e list ',')? ')' ==> call
      * </pre>
      *
      * @return the tree corresponding to the factor expression
@@ -463,9 +503,10 @@ public class Parser {
 
     private void scan() {
         currentToken = lex.nextToken();
+        /*
         if (currentToken != null) {
             currentToken.print();   // debug printout
-        }
+        }*/
         return;
     }
 }
