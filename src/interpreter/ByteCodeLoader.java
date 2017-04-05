@@ -18,6 +18,15 @@ public class ByteCodeLoader {
 		source = new BufferedReader(new FileReader(filename));
 	}
 	
+	/**
+	 * Reads the code file given to the ByteCodeLoader and instantiates the codes and resolves any 
+	 * symbolic addresses found. The codes are then stored in a Program for execution by the VM.
+	 * @return the program object containing instances of all its bytecodes
+	 * @throws IOException
+	 * @throws InstantiationException
+	 * @throws IllegalAccessException
+	 * @throws ClassNotFoundException
+	 */
 	public Program loadCodes() throws IOException, InstantiationException, IllegalAccessException, ClassNotFoundException {
 		Program program = new Program();
 		String nextLine = source.readLine();
@@ -35,7 +44,7 @@ public class ByteCodeLoader {
 			nextLine = source.readLine();
 		}
 		
-		program.resolveSymAddrs();
+		program.resolveAddress();
 		return program;
 	}
 	

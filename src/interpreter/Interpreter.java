@@ -24,7 +24,13 @@ public class Interpreter {
 	}
 
 	void run() {
-		Program program = bcl.loadCodes();
+		Program program = null;
+		try {
+			program = bcl.loadCodes();
+		} catch (Exception e) { 
+			System.out.println("**** " + e);
+		}
+		
 		VirtualMachine vm = new VirtualMachine(program);
 		vm.executeProgram();
 	}

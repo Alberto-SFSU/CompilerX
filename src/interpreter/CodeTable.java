@@ -8,7 +8,7 @@ import java.util.HashMap;
  * @author Alberto Mancini
  */
 public class CodeTable {
-	private static HashMap<String, String> codes; //<bytecode string, class name>
+	private static HashMap<String, String> codes = new HashMap<>(); //<bytecode string, class name>
 	
 	public static void init() {
 		codes.put("HALT", "HaltCode");
@@ -25,6 +25,7 @@ public class CodeTable {
 		codes.put("READ", "ReadCode");
 		codes.put("WRITE", "WriteCode");
 		codes.put("LABEL", "LabelCode");
+		codes.put("DUMP", "DumpCode");
 	}
 	
 	public static String get(String code) {
