@@ -40,6 +40,12 @@ public class Interpreter {
 			System.out.println("***Incorrect usage, try: java interpreter.Interpreter <file>");
 			System.exit(1);
 		}
+		
+		//check for debug flag
+		if(args[0] == "-d") {
+			
+		}
+		
 		(new Interpreter(args[0])).run();
 	}
 }
