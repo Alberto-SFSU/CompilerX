@@ -28,6 +28,15 @@ public class CodeTable {
 		codes.put("DUMP", "DumpCode");
 	}
 	
+	public static void debug() {
+		codes.put("LINE", "debuggerByteCodes.LineCode");
+		codes.put("FUNCTION", "debuggerByteCodes.FunctionCode");
+		codes.put("FORMAL", "debuggerByteCodes.FormalCode");
+		codes.put("CALL", "debuggerByteCodes.DebugCallCode");
+		codes.put("LIT", "debuggerByteCodes.DebugLitCode");
+		codes.put("POP", "debuggerByteCodes.DebugPopCode");
+	}
+	
 	public static String get(String code) {
 		return codes.get(code);
 	}

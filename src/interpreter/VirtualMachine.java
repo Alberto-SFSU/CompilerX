@@ -20,14 +20,14 @@ public class VirtualMachine {
 	
 	public VirtualMachine(Program program) {
 		this.program = program;
+		pc = 0;         
+		runStack = new RunTimeStack();         
+		returnAddrs = new Stack<>();  
+		dump = false; //default
+		isRunning = true;
 	}
 	
-	public void executeProgram() {
-		 pc = 0;         
-		 runStack = new RunTimeStack();         
-		 returnAddrs = new Stack<>();  
-		 dump = false; //default
-		 isRunning = true;         
+	public void executeProgram() {         
 		 while (isRunning) {             
 			 ByteCode code = program.getCode(pc);             
 			 code.execute(this);
@@ -43,8 +43,12 @@ public class VirtualMachine {
 		pc = i;
 	}
 	
-	public int  getPc() {
+	public int getPc() {
 		return pc;
+	}
+	
+	public Program getProgram() {
+		return program;
 	}
 	
 	public int pushAddr(int returnAddress) {
@@ -89,6 +93,14 @@ public class VirtualMachine {
 	
 	public void setDump(boolean state) {
 		dump = state;
+	}
+	
+	public boolean getRunStatus() {
+		return isRunning;
+	}
+	
+	public void run() {
+		isRunning = true;
 	}
 	
 	public void terminate() {

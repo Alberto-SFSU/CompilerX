@@ -1,6 +1,7 @@
 package interpreter.debugger;
 
 import java.util.Iterator;
+import java.util.Set;
 
 public class FunctionEnvironmentRecord {
 	
@@ -24,12 +25,32 @@ public class FunctionEnvironmentRecord {
 		this.end = end;
 	}
 	
+	public int getStart() {
+		return start;
+	}
+	
+	public int getEnd() {
+		return end;
+	}
+	
 	public void setCurrentLineNumber(int lineNum) {
 		this.lineNum = lineNum;
 	}
 	
+	public int getLineNumber() {
+		return lineNum;
+	}
+	
 	public void setVarVal(String var, int val) {
 		table.put(var, val);
+	}
+	
+	public Set<String> getVariables() {
+		return table.keys();
+	}
+	
+	public Object getVarVal(String key) {
+		return table.get(key);
 	}
 	
 	public void doPop(int n) {

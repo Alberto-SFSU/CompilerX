@@ -2,6 +2,9 @@ package interpreter;
 
 import java.io.*;
 
+import interpreter.debugger.DebugVM;
+import interpreter.debugger.UserInterface;
+
 /**
  * <pre>
  *     Interpreter class runs the interpreter:
@@ -34,6 +37,21 @@ public class Interpreter {
 		VirtualMachine vm = new VirtualMachine(program);
 		vm.executeProgram();
 	}
+	
+	void runDebug(String sourceFile) throws IOException {
+		CodeTable.debug();
+		Program program = null;
+		try {
+			program = bcl.loadCodes();
+		} catch (Exception e) { 
+			System.out.println("**** " + e);
+		}
+		
+		DebugVM dvm = new DebugVM(program, sourceFile);
+		UserInterface ui = new UserInterface(dvm);
+		ui.debugUI();
+		//dvm.executeProgram();
+	}
 
 	public static void main(String args[]) {
 		if (args.length == 0) {
@@ -42,10 +60,16 @@ public class Interpreter {
 		}
 		
 		//check for debug flag
-		if(args[0] == "-d") {
-			
+		if(args[0].equals("-d")) {
+			String codeFile = args[1]+".x.cod";
+			String sourceFile = args[1]+".x";
+			Interpreter interp = new Interpreter(codeFile);
+			try{
+				interp.runDebug(sourceFile);
+			} catch(IOException e) {
+				System.out.println("**** " + e);
+			}
 		}
-		
-		(new Interpreter(args[0])).run();
+		else { (new Interpreter(args[0])).run(); }
 	}
 }
