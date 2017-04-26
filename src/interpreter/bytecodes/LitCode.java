@@ -29,4 +29,11 @@ public class LitCode extends ByteCode {
 		return "LIT " + val + " " + id;
 	}
 	
+	public String getId() {
+		return id;
+	}
+	
+	public int getValue() {
+		return Integer.parseInt(val);
+	}
 }

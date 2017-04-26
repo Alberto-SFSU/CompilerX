@@ -49,7 +49,6 @@ public class Interpreter {
 		
 		DebugVM dvm = new DebugVM(program, sourceFile);
 		UserInterface ui = new UserInterface(dvm);
-		ui.debugUI();
 		//dvm.executeProgram();
 	}
 

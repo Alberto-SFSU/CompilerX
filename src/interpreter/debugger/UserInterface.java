@@ -18,7 +18,7 @@ public class UserInterface {
 	/**
 	 * Debugger User Interface
 	 */
-	public void debugUI() {
+	private void debugUI() {
 		Scanner sc = new Scanner(System.in);
 		boolean done = false;
 		String [] input;
@@ -32,7 +32,7 @@ public class UserInterface {
 			switch(input[0]) {
 				case "?": displayHelp(); break; //help
 				case "b": setBreakpoint(input); break; //set breakpoints
-				case "clr": clearBreakpoint(input); //clear breakpoints
+				case "cb": clearBreakpoint(input); //clear breakpoints
 				case "f": displayFunction(); break; //current function
 				case "c": continueExecution(); break; //continue
 				case "v": displayVariables(); break;//variables
@@ -52,9 +52,28 @@ public class UserInterface {
 	 * </pre>
 	 */
 	private void displayHelp() {
-		System.out.println("Command List");
-		System.out.println("------------");
-		System.out.format("%-10s%-20s%-s","b [args]","Set Breakpoint(s)", "b 3 5\nBreakpoints set at lines 3 and 5");
+		System.out.println("*****Command List*****");
+		System.out.println("------------------------------------------------------------------------");
+		
+		System.out.format("%-15s%-28s%-1s%n","b [args]","Set Breakpoint(s)", "b 5");
+		System.out.format("%-15s%-28s%-1s%n%n", "","","Breakpoint set at line 5.");
+		System.out.format("%-15s%-28s%-1s%n", "","","b 2 6");
+		System.out.format("%-15s%-28s%-1s%n%n", "","","Breakpoint set on lines 2 and 6.");
+		
+		System.out.format("%-15s%-28s%-1s%n","cb [args]","Clear Breakpoint(s)", "cb");
+		System.out.format("%-15s%-28s%-1s%n%n", "","", "Clear all breakpoints.");
+		System.out.format("%-15s%-28s%-1s%n", "","","cb 2");
+		System.out.format("%-15s%-28s%-1s%n%n", "","","Breakpoint on line 2 cleared.");
+		
+		System.out.format("%-15s%-28s%n%n","f","Display current function");
+		
+		System.out.format("%-15s%-28s%n%n","c","Continue execution");
+		
+		System.out.format("%-15s%-28s%n%n","v","Display local variables");
+		
+		System.out.format("%-15s%-28s%n%n","src","Display source code");
+		
+		System.out.format("%-15s%-28s%n%n","q","Quit debugging and exit");
 	}
 	
 	/**
@@ -86,7 +105,18 @@ public class UserInterface {
 	 * @param args command with arguments consisting of line numbers
 	 */
 	private void setBreakpoint(String [] args) {
-		
+		if(args.length > 1) {
+			String bps = "";
+			for(int i = 1; i < args.length; i++) {
+				dvm.setBreakptFlag(Integer.parseInt(args[i])-1, true);
+				dvm.addBp(i);
+				bps += " " + args[i];
+			}
+			System.out.println("Breakpoint(s) set on at lines" + bps + ".");
+		}
+		else {
+			System.out.println("No breakpoints set. Try b [args].");
+		}
 	}
 	
 	/**
@@ -95,7 +125,19 @@ public class UserInterface {
 	 * @param args command with arguments consisting of line numbers
 	 */
 	private void clearBreakpoint(String [] args) {
-		
+		if(args.length > 1) {
+			String bps = "";
+			for(int i = 1; i < args.length; i++) {
+				dvm.setBreakptFlag(i-1, false);
+				dvm.rmBp(i);
+				bps += " " + args[i];
+			}
+			System.out.println("Breakpoint(s) on lines " + bps + " cleared.");
+		}
+		else {
+			dvm.clearBps();
+			System.out.println("All breakpoints cleared.");
+		}
 	}
 	
 	/**
@@ -110,7 +152,8 @@ public class UserInterface {
 	 * Halts execution and exits debugger.
 	 */
 	private void quit() {
-		
+		System.out.println("Debug session terminated.");
+		dvm.terminate();
 	}
 	
 	/**

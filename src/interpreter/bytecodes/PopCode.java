@@ -25,5 +25,9 @@ public class PopCode extends ByteCode {
 	public String toString() {
 		return "POP " + val;
 	}
+	
+	public int getPopVal() {
+		return Integer.parseInt(val);
+	}
 
 }

@@ -1,13 +1,13 @@
 package interpreter.bytecodes.debuggerByteCodes;
 
 import interpreter.VirtualMachine;
-import interpreter.bytecodes.LitCode;
+import interpreter.bytecodes.ReturnCode;
 import interpreter.debugger.DebugVM;
 
-public class DebugLitCode extends LitCode {
-
+public class DebugReturnCode extends ReturnCode {
+	
 	public void execute(VirtualMachine vm) {
 		super.execute(vm);
-		((DebugVM) vm).peekEnvStack().setVarVal(getId(), getValue()); //DEBUG
+		((DebugVM) vm).popEnvStack(); //DEBUG
 	}
 }

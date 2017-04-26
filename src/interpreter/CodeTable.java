@@ -35,6 +35,7 @@ public class CodeTable {
 		codes.put("CALL", "debuggerByteCodes.DebugCallCode");
 		codes.put("LIT", "debuggerByteCodes.DebugLitCode");
 		codes.put("POP", "debuggerByteCodes.DebugPopCode");
+		codes.put("RETURN", "debuggerByteCodes.DebugReturnCode");
 	}
 	
 	public static String get(String code) {
