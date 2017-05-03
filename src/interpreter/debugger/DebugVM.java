@@ -18,7 +18,6 @@ public class DebugVM extends VirtualMachine {
 	private Stack<FunctionEnvironmentRecord> environmentStack;
 	private Vector<Entry> entries;
 	private Vector<Integer> bpTracker;
-	private boolean atBreakpt;
 	
 	/**
 	 * Constructs a VM for debugging.
@@ -32,19 +31,27 @@ public class DebugVM extends VirtualMachine {
 		environmentStack.push(new FunctionEnvironmentRecord()); //main
 		entries = new Vector<>();
 		bpTracker = new Vector<>();
-		atBreakpt = false;
 		initSource(filename);
 	}
 	
 	public void executeProgram() {
+		
 		while(getRunStatus()) {
-			System.out.println(getPc());
-			if(getLineNumber() >= 0) {
+			if(!getBreakptFlag(getLineNumber()-1)) {
 				ByteCode code = getProgram().getCode(getPc());
 				code.execute(this);
 				setPc(getPc()+1);
 			}
+			else {
+				return;
+			}
 		}
+		
+		//Halt reached - reset dvm
+		System.out.println("*****Debugging complete*****\n");
+		setPc(0);
+		environmentStack.clear();
+		environmentStack.push(new FunctionEnvironmentRecord());
 	}
 	
 	public FunctionEnvironmentRecord peekEnvStack() {
@@ -92,6 +99,7 @@ public class DebugVM extends VirtualMachine {
 	}
 	
 	public boolean getBreakptFlag(int i) {
+		if(i < 0) { return false; } //intrinsic fn call
 		return entries.get(i).isBreakptSet;
 	}
 	

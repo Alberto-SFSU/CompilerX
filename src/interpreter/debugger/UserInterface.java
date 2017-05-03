@@ -32,7 +32,7 @@ public class UserInterface {
 			switch(input[0]) {
 				case "?": displayHelp(); break; //help
 				case "b": setBreakpoint(input); break; //set breakpoints
-				case "cb": clearBreakpoint(input); //clear breakpoints
+				case "cb": clearBreakpoint(input); break;//clear breakpoints
 				case "f": displayFunction(); break; //current function
 				case "c": continueExecution(); break; //continue
 				case "v": displayVariables(); break;//variables
@@ -82,6 +82,7 @@ public class UserInterface {
 	private void displayFunction() {
 		int start = dvm.getFunctionStart();
 		int end = dvm.getFunctionEnd();
+		if(start < 1) { displaySourceFile(); return; }; //main
 		for(int i = start-1; i < end; i++) {
 			System.out.format("%4s%-1s%n", i+". ", dvm.getSourceLine(i));
 		}
@@ -108,11 +109,12 @@ public class UserInterface {
 		if(args.length > 1) {
 			String bps = "";
 			for(int i = 1; i < args.length; i++) {
-				dvm.setBreakptFlag(Integer.parseInt(args[i])-1, true);
-				dvm.addBp(i);
+				int arg = Integer.parseInt(args[i]);
+				dvm.setBreakptFlag(arg-1, true);
+				dvm.addBp(arg);
 				bps += " " + args[i];
 			}
-			System.out.println("Breakpoint(s) set on at lines" + bps + ".");
+			System.out.println("Breakpoint(s) set on line(s)" + bps + ".");
 		}
 		else {
 			System.out.println("No breakpoints set. Try b [args].");
@@ -128,8 +130,9 @@ public class UserInterface {
 		if(args.length > 1) {
 			String bps = "";
 			for(int i = 1; i < args.length; i++) {
-				dvm.setBreakptFlag(i-1, false);
-				dvm.rmBp(i);
+				int arg = Integer.parseInt(args[i]);
+				dvm.setBreakptFlag(arg-1, false);
+				dvm.rmBp(arg);
 				bps += " " + args[i];
 			}
 			System.out.println("Breakpoint(s) on lines " + bps + " cleared.");
@@ -167,7 +170,7 @@ public class UserInterface {
 			bp = "";
 			if(dvm.getBreakptFlag(i)) { bp = "*"; }
 			System.out.format("%-2s%4s%-1s", bp, i+1 +". ", dvm.getSourceLine(i));
-			if(i+1 == dvm.getLineNumber()) { System.out.print("  " + lineMarker); }
+			if(i+1 == dvm.getLineNumber()) { System.out.print("  " + lineMarker); } //???
 			System.out.println();
 		}
 	}
