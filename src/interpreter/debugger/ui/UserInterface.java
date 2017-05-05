@@ -1,6 +1,8 @@
-package interpreter.debugger;
+package interpreter.debugger.ui;
 
 import java.util.Scanner;
+
+import interpreter.debugger.DebugVM;
 
 /**
  * This class handles user interaction when in Debug Mode.
@@ -37,6 +39,9 @@ public class UserInterface {
 				case "c": continueExecution(); break; //continue
 				case "v": displayVariables(); break;//variables
 				case "src": displaySourceFile(); break;
+				case "so": stepOut(); break; //step out
+				case "tr": trace(); break; //step out
+				case "cs": displayCallStack(); break;
 				case "q": done = true; quit(); break; //quit
 				default: System.out.println("\n*****invalid command*****");
 			}
@@ -73,6 +78,8 @@ public class UserInterface {
 		
 		System.out.format("%-15s%-28s%n%n","src","Display source code");
 		
+		System.out.format("%-15s%-28s%n%n","so","Step Out of the current function.");
+		
 		System.out.format("%-15s%-28s%n%n","q","Quit debugging and exit");
 	}
 	
@@ -84,7 +91,7 @@ public class UserInterface {
 		int end = dvm.getFunctionEnd();
 		if(start < 1) { displaySourceFile(); return; }; //main
 		for(int i = start-1; i < end; i++) {
-			System.out.format("%4s%-1s%n", i+". ", dvm.getSourceLine(i));
+			System.out.format("%4s%-1s%n", i+1+". ", dvm.getSourceLine(i));
 		}
 	}
 	
@@ -96,8 +103,8 @@ public class UserInterface {
 	 */
 	private void displayVariables() {
 		String [] vars = dvm.getVariables();
-		for(String var : vars) {
-			System.out.println(var);
+		for(String s : vars) {
+			System.out.println(s);
 		}
 	}
 	
@@ -110,11 +117,23 @@ public class UserInterface {
 			String bps = "";
 			for(int i = 1; i < args.length; i++) {
 				int arg = Integer.parseInt(args[i]);
-				dvm.setBreakptFlag(arg-1, true);
-				dvm.addBp(arg);
-				bps += " " + args[i];
+				try {
+					if(dvm.isBreakable(arg)) {
+						dvm.setBreakptFlag(arg-1, true);
+						dvm.addBp(arg);
+						bps += " " + args[i];
+					}
+					else {
+						System.out.println("*****Cannot place a breakpoint on line " + arg +". Invalid construct.");
+					}
+				}
+				catch(Exception e) {
+					System.out.println("*****Invalid line number: " + arg + ".");
+				}
 			}
-			System.out.println("Breakpoint(s) set on line(s)" + bps + ".");
+			if(!bps.isEmpty()) {
+				System.out.println("Breakpoint(s) set on line(s)" + bps + ".");
+			}
 		}
 		else {
 			System.out.println("No breakpoints set. Try b [args].");
@@ -148,7 +167,7 @@ public class UserInterface {
 	 */
 	private void continueExecution() {
 		dvm.executeProgram();
-		displaySourceFile();
+		if(dvm.isInterupted()) { displaySourceFile();}
 	}
 	
 	/**
@@ -173,5 +192,30 @@ public class UserInterface {
 			if(i+1 == dvm.getLineNumber()) { System.out.print("  " + lineMarker); } //???
 			System.out.println();
 		}
+	}
+	
+	private void displayCallStack() {
+		String [] callStack = dvm.callStack();
+		for(int i = callStack.length-1; i >= 0; i--) {
+			System.out.println(callStack[i]);
+		}
+		System.out.println();
+	}
+	
+	private void trace() {
+		boolean flag = dvm.getTrace();
+		dvm.setTrace(!flag);
+		if(flag) {
+			System.out.println("Function tracing is now [OFF].");
+		}
+		else {
+			System.out.println("Function tracing is now [ON].");
+		}
+	}
+	
+	private void stepOut() {
+		dvm.setStepOut(true);
+		dvm.setStepSize(dvm.getEnvStackSize());
+		continueExecution();
 	}
 }

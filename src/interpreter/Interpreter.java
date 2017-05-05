@@ -3,7 +3,7 @@ package interpreter;
 import java.io.*;
 
 import interpreter.debugger.DebugVM;
-import interpreter.debugger.UserInterface;
+import interpreter.debugger.ui.UserInterface;
 
 /**
  * <pre>

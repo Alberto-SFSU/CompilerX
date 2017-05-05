@@ -41,6 +41,10 @@ public class FunctionEnvironmentRecord {
 		return lineNum;
 	}
 	
+	public String getName() {
+		return name;
+	}
+	
 	public void setVarVal(String var, int val) {
 		table.put(var, val);
 	}

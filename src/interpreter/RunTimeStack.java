@@ -17,13 +17,12 @@ public class RunTimeStack {
 		framePointers = new Stack<>();
 		runStack = new Vector<>();
 	}
-
+	
 	/**
 	 * Dumps the state of the runtime stack.
 	 * Used for debugging when DUMP flag is raised by the VM
 	 */
 	public void dump() {
-		//TODO debug
 		int frameIndex = -1;
 		Iterator<Integer> iter = framePointers.iterator();
 		if(!framePointers.isEmpty()) {
@@ -49,6 +48,15 @@ public class RunTimeStack {
 	
 	public int peek() {
 		return runStack.get(runStack.size()-1);
+	}
+	
+	public int peekFrame() {
+		if(framePointers.isEmpty()) { return 0; }
+		return framePointers.peek();
+	}
+	
+	public int getVal(int i) {
+		return runStack.get(i);
 	}
 	
 	public int pop() {

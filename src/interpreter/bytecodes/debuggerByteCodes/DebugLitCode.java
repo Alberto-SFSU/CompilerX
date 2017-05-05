@@ -8,6 +8,8 @@ public class DebugLitCode extends LitCode {
 
 	public void execute(VirtualMachine vm) {
 		super.execute(vm);
-		((DebugVM) vm).peekEnvStack().setVarVal(getId(), getValue()); //DEBUG
+		if(!getId().equals("")) {
+			((DebugVM) vm).peekEnvStack().setVarVal(getId(), getValue());
+		}//DEBUG
 	}
 }

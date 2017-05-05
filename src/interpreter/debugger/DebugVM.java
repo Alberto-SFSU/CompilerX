@@ -6,6 +6,8 @@ import interpreter.bytecodes.ByteCode;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Iterator;
+import java.util.Set;
 import java.util.Stack;
 import java.util.Vector;
 
@@ -18,6 +20,13 @@ public class DebugVM extends VirtualMachine {
 	private Stack<FunctionEnvironmentRecord> environmentStack;
 	private Vector<Entry> entries;
 	private Vector<Integer> bpTracker;
+	private boolean interupted;
+	private int breakLine; //current line stopped
+	
+	private boolean stepOut; //step out command flag
+	private int stepSize;
+	
+	private boolean trace; //trace flag
 	
 	/**
 	 * Constructs a VM for debugging.
@@ -31,27 +40,38 @@ public class DebugVM extends VirtualMachine {
 		environmentStack.push(new FunctionEnvironmentRecord()); //main
 		entries = new Vector<>();
 		bpTracker = new Vector<>();
+		interupted = false;
+		breakLine = -1;
+		stepOut = false;
+		trace = false;
 		initSource(filename);
 	}
 	
 	public void executeProgram() {
-		
+		interupted = false;
 		while(getRunStatus()) {
-			if(!getBreakptFlag(getLineNumber()-1)) {
+			int lineNum = getLineNumber();
+			
+			if((!getBreakptFlag(getLineNumber()-1) || breakLine == lineNum) && !interupted) {
 				ByteCode code = getProgram().getCode(getPc());
 				code.execute(this);
 				setPc(getPc()+1);
+				if(breakLine != lineNum) { breakLine = -1; }
 			}
 			else {
+				interupted = true;
+				breakLine = getLineNumber();
 				return;
 			}
 		}
 		
 		//Halt reached - reset dvm
-		System.out.println("*****Debugging complete*****\n");
+		System.out.println("*****Debugging complete*****");
 		setPc(0);
+		breakLine = -1;
 		environmentStack.clear();
 		environmentStack.push(new FunctionEnvironmentRecord());
+		run();
 	}
 	
 	public FunctionEnvironmentRecord peekEnvStack() {
@@ -64,6 +84,10 @@ public class DebugVM extends VirtualMachine {
 	
 	public FunctionEnvironmentRecord popEnvStack() {
 		return environmentStack.pop();
+	}
+	
+	public int getEnvStackSize() {
+		return environmentStack.size();
 	}
 	
 	public void doEnvRecPop(int pop) {
@@ -87,11 +111,14 @@ public class DebugVM extends VirtualMachine {
 	}
 	
 	public String [] getVariables() {
-		String [] vars = (String[]) environmentStack.peek().getVariables().toArray();
-		for(int i = 0; i < vars.length; i++) {
-			vars[i] += " = " + environmentStack.peek().getVarVal(vars[i]);
+		Set<String> vars = environmentStack.peek().getVariables();
+		String [] tmp = new String [vars.size()];
+		int i = 0;
+		for(String str: vars) {
+			tmp[i] = str + ": " + getVal(peekFrame()+i);
+			i++;
 		}
-		return vars;
+		return tmp;
 	}
 	
 	public String getSourceLine(int i) {
@@ -128,6 +155,65 @@ public class DebugVM extends VirtualMachine {
 	
 	public int getEntryCount() {
 		return entries.size();
+	}
+	
+	public boolean isInterupted() {
+		return interupted;
+	}
+	
+	public void setInterupt(boolean flag) {
+		interupted = flag;
+	}
+	
+	public boolean stepOut() {
+		return stepOut;
+	}
+	
+	public void setStepOut(boolean flag) {
+		stepOut = flag;
+	}
+	
+	public void setStepSize(int i) {
+		stepSize = i;
+	}
+	
+	public int getStepSize() {
+		return stepSize;
+	}
+	
+	public void setTrace(boolean flag) {
+		trace = flag;
+	}
+	
+	public boolean getTrace() {
+		return trace;
+	}
+	
+	public boolean isBreakable(int lineNumber) {
+		String line = entries.get(lineNumber-1).sourceLine;
+		if(line.contains("{") || //blocks
+		   line.contains("int") || //decl
+		   line.contains("boolean") ||
+		   line.contains("if") || //if
+		   line.contains("while") || //while
+		   line.contains("return") || //return
+		   line.contains("=")) { //assign
+			return true;
+		}
+		return false;
+	}
+	
+	public String[] callStack() {
+		Iterator<FunctionEnvironmentRecord> iter = environmentStack.iterator();
+		String [] callStack = new String[environmentStack.size()];
+		
+		int i = 0;
+		while(iter.hasNext()) {
+			FunctionEnvironmentRecord rec = iter.next();
+			callStack[i] = rec.getName() + " : " + rec.getLineNumber();
+			i++;
+		}
+		return callStack;
 	}
 	
 	/**

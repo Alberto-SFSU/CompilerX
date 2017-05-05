@@ -75,6 +75,15 @@ public class VirtualMachine {
 		return runStack.peek();
 	}
 	
+	//testing================
+	public int peekFrame() {
+		return runStack.peekFrame();
+	}
+	
+	public int getVal(int i) {
+		return runStack.getVal(i);
+	}
+	
 	public void newFrame(int offset) {
 		runStack.newFrameAt(offset);
 	}
